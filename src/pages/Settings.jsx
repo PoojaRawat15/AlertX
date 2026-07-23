@@ -1,19 +1,32 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 function Settings() {
   const navigate = useNavigate();
 
   const [language, setLanguage] = useState("English");
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white px-6 py-10">
-<button
-  onClick={() => navigate(-1)}
-  className="absolute top-6 left-6 text-white hover:text-red-500 text-lg font-semibold"
->
-  ← Back
-</button>
+
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 text-white hover:text-red-500 text-lg font-semibold"
+      >
+        ← Back
+      </button>
+
       <div className="max-w-3xl mx-auto">
 
         <h1 className="text-4xl font-bold text-center">
@@ -25,7 +38,6 @@ function Settings() {
         </p>
 
         {/* Account */}
-
         <div className="bg-gray-900 rounded-3xl p-6 mt-8">
 
           <h2 className="text-2xl font-bold mb-4">
@@ -47,7 +59,6 @@ function Settings() {
         </div>
 
         {/* Language */}
-
         <div className="bg-gray-900 rounded-3xl p-6 mt-6">
 
           <h2 className="text-2xl font-bold mb-4">
@@ -56,7 +67,7 @@ function Settings() {
 
           <select
             value={language}
-            onChange={(e)=>setLanguage(e.target.value)}
+            onChange={(e) => setLanguage(e.target.value)}
             className="w-full bg-gray-800 p-4 rounded-xl"
           >
             <option>English</option>
@@ -66,7 +77,6 @@ function Settings() {
         </div>
 
         {/* Notifications */}
-
         <div className="bg-gray-900 rounded-3xl p-6 mt-6">
 
           <h2 className="text-2xl font-bold mb-4">
@@ -91,7 +101,6 @@ function Settings() {
         </div>
 
         {/* Privacy */}
-
         <div className="bg-gray-900 rounded-3xl p-6 mt-6">
 
           <h2 className="text-2xl font-bold mb-4">
@@ -111,7 +120,6 @@ function Settings() {
         </div>
 
         {/* About */}
-
         <div className="bg-gray-900 rounded-3xl p-6 mt-6">
 
           <h2 className="text-2xl font-bold mb-3">
@@ -126,8 +134,9 @@ function Settings() {
 
         </div>
 
+        {/* Logout */}
         <button
-          onClick={() => navigate("/login")}
+          onClick={handleLogout}
           className="w-full mt-8 bg-red-600 hover:bg-red-700 py-4 rounded-xl text-xl font-bold"
         >
           🚪 Logout

@@ -6,9 +6,15 @@ function useShakeDetection(onShake) {
     let lastY = null;
     let lastZ = null;
 
+    let shakeCount = 0;
+    let lastShakeTime = 0;
+    let cooldown = false;
+
     const threshold = 25;
 
     const handleMotion = (event) => {
+      if (cooldown) return;
+
       const acc = event.accelerationIncludingGravity;
 
       if (!acc) return;
@@ -25,7 +31,26 @@ function useShakeDetection(onShake) {
           deltaY > threshold ||
           deltaZ > threshold
         ) {
-          onShake();
+          const now = Date.now();
+
+          if (now - lastShakeTime < 2000) {
+            shakeCount++;
+          } else {
+            shakeCount = 1;
+          }
+
+          lastShakeTime = now;
+
+          if (shakeCount >= 3) {
+            cooldown = true;
+            shakeCount = 0;
+
+            onShake();
+
+            setTimeout(() => {
+              cooldown = false;
+            }, 5000);
+          }
         }
       }
 
