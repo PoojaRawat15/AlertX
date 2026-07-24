@@ -10,7 +10,7 @@ function useShakeDetection(onShake) {
     let lastShakeTime = 0;
     let cooldown = false;
 
-    const threshold = 25;
+    const threshold = 18;
 
     const handleMotion = (event) => {
       if (cooldown) return;
@@ -33,7 +33,7 @@ function useShakeDetection(onShake) {
         ) {
           const now = Date.now();
 
-          if (now - lastShakeTime < 2000) {
+          if (now - lastShakeTime < 3000) {
             shakeCount++;
           } else {
             shakeCount = 1;
@@ -46,10 +46,11 @@ function useShakeDetection(onShake) {
             shakeCount = 0;
 
             onShake();
+            console.log("Shake Detected");
 
             setTimeout(() => {
               cooldown = false;
-            }, 5000);
+            }, 3000);
           }
         }
       }
