@@ -17,7 +17,9 @@ function SOS() {
       timerRef.current = null;
     }
 
-    startedRef.current = false;
+    setTimeout(() => {
+      startedRef.current = false;
+    }, 1000);
 
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -55,7 +57,7 @@ function SOS() {
     timerRef.current = setInterval(() => {
 
       if ("vibrate" in navigator) {
-        navigator.vibrate(200);
+        navigator.vibrate([300,200]);
       }
 
       time--;
@@ -64,7 +66,6 @@ function SOS() {
 
       if (time <= 0) {
         stopSOS();
-        setStatus("idle");
 
         setStatus("sending");
 
@@ -81,9 +82,14 @@ function SOS() {
 
   const cancelSOS = () => {
     stopSOS();
-
-    setStatus("idle");
     setCount(5);
+    setStatus("idle");
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    if ("vibrate" in naviator) {
+      navigator.vibrate(0);
+    }
   };
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-6">
