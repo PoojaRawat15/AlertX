@@ -57,7 +57,7 @@ function SOS() {
     timerRef.current = setInterval(() => {
 
       if ("vibrate" in navigator) {
-        navigator.vibrate([300,200]);
+        navigator.vibrate([500,200,500]);
       }
 
       time--;
