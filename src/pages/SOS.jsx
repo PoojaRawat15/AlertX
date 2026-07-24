@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import useShakeDetection from "../hooks/useShakeDetection";
 
@@ -8,39 +8,39 @@ function SOS() {
   const [status, setStatus] = useState("idle");
   const [count, setCount] = useState(5);
 
-  const handleSOS = () => {
+  const handleSOS = useCallback(() => {
     if (status !== "idle") return;
 
     setStatus("countdown");
     setCount(5);
-
-    // Vibration
-    if (navigator.vibrate) {
-      navigator.vibrate([500, 300, 500]);
+    if("vibrate" in navigator ){
+      navigator.vibrate([300,200,300]);
     }
-
+    if("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     // Voice Alert
     const speech = new SpeechSynthesisUtterance(
       "Emergency detected. Are you okay? Emergency alert will be sent in 5 seconds. Tap cancel to stop."
     );
 
+    speech.lang = "en-US";
     speech.rate = 1;
     speech.pitch = 1;
-    speech.volume = 1;
 
     window.speechSynthesis.speak(speech);
-
+  }
     let timer = 5;
 
     const interval = setInterval(() => {
       timer--;
       setCount(timer);
 
-      if (timer === 0) {
+      if (timer <= 0) {
         clearInterval(interval);
+        if("speechSynthesis" in window) {
 
         window.speechSynthesis.cancel();
-
+        }
         setStatus("sending");
 
         setTimeout(() => {
@@ -48,7 +48,7 @@ function SOS() {
         }, 2000);
       }
     }, 1000);
-  };
+  }, [status]);
 
   // Shake Detection
   useShakeDetection(() => {
