@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useShakeDetection from "../hooks/useShakeDetection";
 
@@ -8,59 +8,82 @@ function SOS() {
   const [status, setStatus] = useState("idle");
   const [count, setCount] = useState(5);
 
+  const timerRef = useRef(null);
+  const startedRef = useRef(false);
+
+  const stopSOS = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    startedRef.current = false;
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    if ("vibrate" in navigator) {
+      navigator.vibrate(0);
+    }
+  };
+
   const handleSOS = useCallback(() => {
-    if (status !== "idle") return;
+    if (startedRef.current) return;
+
+    startedRef.current = true;
 
     setStatus("countdown");
     setCount(5);
-    if("vibrate" in navigator ){
-      navigator.vibrate([300,200,300]);
-    }
-    if("speechSynthesis" in window) {
+
+    if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-    // Voice Alert
-    const speech = new SpeechSynthesisUtterance(
-      "Emergency detected. Are you okay? Emergency alert will be sent in 5 seconds. Tap cancel to stop."
-    );
 
-    speech.lang = "en-US";
-    speech.rate = 1;
-    speech.pitch = 1;
+      const speech = new SpeechSynthesisUtterance(
+        "Emergency detected. Are you okay? Emergency alert will be sent in five seconds. Tap cancel to stop."
+      );
 
-    window.speechSynthesis.speak(speech);
-  }
-    let timer = 5;
+      speech.lang = "en-US";
+      speech.rate = 1;
+      speech.pitch = 1;
 
-    const interval = setInterval(() => {
-      timer--;
-      setCount(timer);
+      window.speechSynthesis.speak(speech);
+    }
 
-      if (timer <= 0) {
-        clearInterval(interval);
-        if("speechSynthesis" in window) {
+    let time = 5;
 
-        window.speechSynthesis.cancel();
-        }
+    timerRef.current = setInterval(() => {
+
+      if ("vibrate" in navigator) {
+        navigator.vibrate(200);
+      }
+
+      time--;
+
+      setCount(time);
+
+      if (time <= 0) {
+        stopSOS();
+
         setStatus("sending");
 
         setTimeout(() => {
           setStatus("sent");
         }, 2000);
       }
-    }, 1000);
-  }, [status]);
 
-  // Shake Detection
-  useShakeDetection(() => {
-    handleSOS();
-  });
+    }, 1000);
+
+  }, []);
+
+  useShakeDetection(handleSOS);
 
   const cancelSOS = () => {
-    window.speechSynthesis.cancel();
+    stopSOS();
+
     setStatus("idle");
     setCount(5);
   };
-
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-6">
 
@@ -98,11 +121,11 @@ function SOS() {
 
         {status === "countdown" && (
           <>
-            <h2 className="text-6xl font-bold text-yellow-400 mt-10">
+            <h2 className="text-7xl font-bold text-yellow-400 mt-10">
               {count}
             </h2>
 
-            <p className="mt-5 text-white text-xl">
+            <p className="mt-5 text-white text-2xl font-semibold">
               🚨 Emergency Detected
             </p>
 
@@ -111,7 +134,7 @@ function SOS() {
             </p>
 
             <p className="mt-2 text-gray-400">
-              Emergency alert will be sent in {count} seconds.
+              Emergency alert will be sent in <b>{count}</b> seconds.
             </p>
 
             <button
@@ -144,6 +167,16 @@ function SOS() {
             <p className="mt-5 text-gray-300">
               Your emergency contacts have been notified.
             </p>
+
+            <button
+              onClick={() => {
+                setStatus("idle");
+                setCount(5);
+              }}
+              className="mt-8 bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-xl font-semibold"
+            >
+              Back to SOS
+            </button>
           </>
         )}
 
