@@ -64,6 +64,7 @@ function SOS() {
 
       if (time <= 0) {
         stopSOS();
+        setStatus("idle");
 
         setStatus("sending");
 
