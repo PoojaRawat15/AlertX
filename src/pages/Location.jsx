@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -17,6 +17,8 @@ function Location() {
   const navigate = useNavigate();
 
   const [position, setPosition] = useState(null);
+  const [address, setAddress] = useState("");
+  const [mapLink, setMapLink] = useState("");
 
   const getLocation = () => {
     if (!navigator.geolocation) {
@@ -26,10 +28,14 @@ function Location() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setPosition([
-          pos.coords.latitude,
-          pos.coords.longitude,
-        ]);
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        setPosition([lat, lng]);
+
+        setMapLink(
+          `https://www.google.com/maps?q=${lat},${lng}`
+        );
       },
       () => {
         alert("Unable to get location.");
@@ -40,6 +46,39 @@ function Location() {
     );
   };
 
+  useEffect(() => {
+    if (!position) return;
+
+    const fetchAddress = async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position[0]}&lon=${position[1]}`
+        );
+
+        const data = await res.json();
+
+        const a = data.address;
+
+        const location =
+          a.neighbourhood ||
+          a.suburb ||
+          a.residential ||
+          a.hamlet ||
+          a.village ||
+          a.town ||
+          a.city ||
+          "";
+
+        setAddress(
+          `${location}, ${a.city || a.town || a.village || ""}, ${a.state || ""}`
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchAddress();
+  }, [position]);
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center px-6 py-10">
 
@@ -63,11 +102,26 @@ function Location() {
 
       {position && (
         <>
-          <p className="mt-6 text-center">
-            Latitude: {position[0]}
-            <br />
-            Longitude: {position[1]}
-          </p>
+          <div className="mt-8 bg-gray-900 rounded-2xl p-6 w-full max-w-3xl text-center">
+
+            <h2 className="text-2xl font-bold text-green-400">
+              📍 Last Known Location
+            </h2>
+
+            <p className="mt-3 text-lg text-white">
+              {address || "Fetching address..."}
+            </p>
+
+            <a
+              href={mapLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-6 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold"
+            >
+              🗺️ Open in Google Maps
+            </a>
+
+          </div>
 
           <div className="mt-6 w-full max-w-4xl h-[500px] rounded-2xl overflow-hidden">
             <MapContainer
