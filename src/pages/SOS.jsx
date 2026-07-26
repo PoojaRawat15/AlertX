@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useShakeDetection from "../hooks/useShakeDetection";
-
+const beep = newAudio("/beep.mp3");
 function SOS() {
   const navigate = useNavigate();
 
@@ -37,6 +37,9 @@ function SOS() {
 
     setStatus("countdown");
     setCount(5);
+    if("vibrator" in navigator){
+      navigator.vibrate([500,200,500]);
+    }
 
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -55,6 +58,8 @@ function SOS() {
     let time = 5;
 
     timerRef.current = setInterval(() => {
+      beep.currentTime = 0;
+      beep.play();
 
       if ("vibrate" in navigator) {
         navigator.vibrate([500,200,500]);
@@ -132,24 +137,35 @@ function SOS() {
               {count}
             </h2>
 
-            <p className="mt-5 text-white text-2xl font-semibold">
-              🚨 Emergency Detected
-            </p>
+            <h2 className="mt-5 text=3xl font-bold text-red-500">
+              🚨 Possible Emergency Detected
+            </h2>
 
-            <p className="mt-3 text-gray-300">
+            <p className="mt-4 text=xl text-white">
               Are you okay?
             </p>
 
             <p className="mt-2 text-gray-400">
               Emergency alert will be sent in <b>{count}</b> seconds.
             </p>
+            <div className="mt-8 flex gap-4 justify-center">
+              <button onClick={cancelSOS}
+              className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-bold">
+                ✅I'm safe
+              </button>
+              <button onClick={() => {
+                stopSOS();
+                setStatus("sending");
+                setTimeout(() => {
+                  setStatus("sent");
+                }, 2000);
+              }}
+              className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold" >
+                🚨No, I'm not safe
+              </button>
+            </div>
 
-            <button
-              onClick={cancelSOS}
-              className="mt-8 bg-gray-700 hover:bg-gray-800 px-8 py-3 rounded-xl font-semibold"
-            >
-              Cancel
-            </button>
+            
           </>
         )}
 
