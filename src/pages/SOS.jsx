@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useShakeDetection from "../hooks/useShakeDetection";
-const beep = newAudio("/beep.mp3");
+const beep = new Audio("/beep.mp3");
 function SOS() {
   const navigate = useNavigate();
 
