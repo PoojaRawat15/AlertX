@@ -119,7 +119,7 @@ function SOS() {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    if ("vibrate" in naviator) {
+    if ("vibrate" in navigator) {
       navigator.vibrate(0);
     }
   };
@@ -183,7 +183,7 @@ function SOS() {
               <button onClick={() => {
                 stopSOS();
                 setStatus("sending");
-                sendEmailVerification();
+                sendAlert();
               }}
               className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold" >
                 🚨No, I'm not safe
