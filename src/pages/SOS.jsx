@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useShakeDetection from "../hooks/useShakeDetection";
+import useImpactDetection from "../hooks/useImpactDetection";
+import {addDoc, collection } from "firebase/firestore";
+import { db, auth } from "../firebase";
 const beep = new Audio("/beep.mp3");
 function SOS() {
   const navigate = useNavigate();
@@ -84,7 +87,31 @@ function SOS() {
   }, []);
 
   useShakeDetection(handleSOS);
+  useImpactDetection(handleSOS);
 
+  const sendAlert = async () => {
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const user = auth.currentUser;
+
+      await addDoc(collection(db, "alerts"), {
+        name: user?.displayName || user?.email || "Unknown User",
+        uid: user?.uid,
+        status: "NOT SAFE",
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        mapLink: `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`,
+        createdAt: new Date(),
+      });
+
+      setStatus("sent");
+    },
+    () => {
+      alert("Location permission denied.");
+      setStatus("idle");
+    }
+  );
+};
   const cancelSOS = () => {
     stopSOS();
     setCount(5);
@@ -156,9 +183,7 @@ function SOS() {
               <button onClick={() => {
                 stopSOS();
                 setStatus("sending");
-                setTimeout(() => {
-                  setStatus("sent");
-                }, 2000);
+                sendEmailVerification();
               }}
               className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold" >
                 🚨No, I'm not safe
