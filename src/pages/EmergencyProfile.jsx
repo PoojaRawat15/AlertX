@@ -1,6 +1,6 @@
 import { auth, db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { useState } from "react";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 function EmergencyProfile() {
       const navigate = useNavigate();
@@ -31,6 +31,20 @@ function EmergencyProfile() {
     notes: "",
   });
 
+  useEffect(() => {
+  const loadProfile = async () => {
+    if (!auth.currentUser) return;
+
+    const docRef = doc(db, "emergencyProfiles", auth.currentUser.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      setForm(docSnap.data());
+    }
+  };
+
+  loadProfile();
+}, []);
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -89,6 +103,7 @@ function EmergencyProfile() {
 
           <input
             name="name"
+            value={form.name}
             placeholder="Full Name *"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -96,6 +111,7 @@ function EmergencyProfile() {
 
           <input
             name="age"
+            value={form.age}
             type="number"
             placeholder="Age *"
             onChange={handleChange}
@@ -104,6 +120,7 @@ function EmergencyProfile() {
 
           <select
             name="gender"
+            value={form.gender}
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
           >
@@ -115,6 +132,7 @@ function EmergencyProfile() {
 
           <select
             name="bloodGroup"
+            value={form.bloodGroup}
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
           >
@@ -131,6 +149,7 @@ function EmergencyProfile() {
 
           <input
             name="phone"
+            value={form.phone}
             placeholder="Phone Number *"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -138,6 +157,7 @@ function EmergencyProfile() {
 
           <textarea
             name="address"
+            value={form.address}
             placeholder="Address *"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none md:col-span-2"
@@ -152,6 +172,7 @@ function EmergencyProfile() {
 
           <select
             name="medical"
+            value={form.medical}
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none md:col-span-2"
           >
@@ -166,6 +187,7 @@ function EmergencyProfile() {
 
           <input
             name="otherMedical"
+            value={form.otherMedical}
             placeholder="Other Medical Condition"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none md:col-span-2"
@@ -173,6 +195,7 @@ function EmergencyProfile() {
 
           <input
             name="allergies"
+            value={form.allergies}
             placeholder="Allergies"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -180,6 +203,7 @@ function EmergencyProfile() {
 
           <input
             name="medicines"
+            value={form.medicines}
             placeholder="Current Medicines"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -195,6 +219,7 @@ function EmergencyProfile() {
 
           <input
             name="emergency1Name"
+            value={form.emergency1Name}
             placeholder="Contact 1 Name *"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -202,6 +227,7 @@ function EmergencyProfile() {
 
           <input
             name="emergency1Phone"
+            value={form.emergency1Phone}
             placeholder="Contact 1 Phone *"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -209,6 +235,7 @@ function EmergencyProfile() {
 
           <select
             name="emergency1Relation"
+            value={form.emergency1Realtion}
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
           >
@@ -227,6 +254,7 @@ function EmergencyProfile() {
 
           <input
             name="emergency2Name"
+            value={form.emergency2Name}
             placeholder="Contact 2 Name"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -234,6 +262,7 @@ function EmergencyProfile() {
 
           <input
             name="emergency2Phone"
+            value={form.emergency2Phone}
             placeholder="Contact 2 Phone"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -241,6 +270,7 @@ function EmergencyProfile() {
 
           <select
             name="emergency2Relation"
+            value={form.emergency2Relation}
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
           >
@@ -259,6 +289,7 @@ function EmergencyProfile() {
 
           <input
             name="emergency3Name"
+            value={form.emergency3Name}
             placeholder="Contact 3 Name"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -266,6 +297,7 @@ function EmergencyProfile() {
 
           <input
             name="emergency3Phone"
+            value={form.emergency3Phone}
             placeholder="Contact 3 Phone"
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
@@ -273,6 +305,7 @@ function EmergencyProfile() {
 
           <select
             name="emergency3Relation"
+            value={form.emergency3Relation}
             onChange={handleChange}
             className="p-4 rounded-xl bg-gray-800 outline-none"
           >
@@ -297,6 +330,7 @@ function EmergencyProfile() {
 
         <textarea
           name="notes"
+          value={form.notes}
           rows="4"
           placeholder="Additional Notes (Optional)"
           onChange={handleChange}
