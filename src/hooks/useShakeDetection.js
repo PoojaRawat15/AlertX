@@ -10,7 +10,7 @@ function useShakeDetection(onShake) {
     let lastShakeTime = 0;
     let cooldown = false;
 
-    const threshold = 18;
+    const threshold = 35;
 
     const handleMotion = (event) => {
       if (cooldown) return;
