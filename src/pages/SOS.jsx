@@ -167,12 +167,12 @@ function SOS() {
               <b className="text-white">{count}</b> seconds.
             </p>
 
-            <div className="mt-8 flex gap-4 justify-center flex-wrap">
+            <div className="mt-8 flex gap-3 justify-center">
 
               {/* I'M SAFE */}
               <button
                 onClick={cancelSOS}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-4 rounded-xl font-bold text-lg"
               >
                 ✅ I'm Safe
               </button>
@@ -180,7 +180,7 @@ function SOS() {
               {/* NOT SAFE */}
               <button
                 onClick={notSafe}
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-4 rounded-xl font-bold"
               >
                 🚨 No, I'm Not Safe
               </button>
