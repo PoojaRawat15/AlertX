@@ -1,149 +1,186 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-
-import "leaflet/dist/leaflet.css";
-
-const icon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+import { useState } from "react";
 
 function Location() {
-  const navigate = useNavigate();
-
-  const [position, setPosition] = useState(null);
+  const [location, setLocation] = useState(null);
   const [address, setAddress] = useState("");
-  const [mapLink, setMapLink] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const getLocation = () => {
+    setLoading(true);
+    setError("");
+    setAddress("");
+    setLocation(null);
+
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported.");
+      setError("Geolocation is not supported by your browser.");
+      setLoading(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
 
-        setPosition([lat, lng]);
+        setLocation({
+          latitude,
+          longitude,
+        });
 
-        setMapLink(
-          `https://www.google.com/maps?q=${lat},${lng}`
-        );
+        // Reverse geocoding - get address
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+          );
+
+          const data = await response.json();
+
+          if (data.display_name) {
+            setAddress(data.display_name);
+          } else {
+            setAddress("Address could not be found.");
+          }
+        } catch (err) {
+          console.error("Address error:", err);
+          setAddress("Location found, but address could not be loaded.");
+        }
+
+        setLoading(false);
       },
-      () => {
-        alert("Unable to get location.");
+
+      (error) => {
+        console.error(error);
+
+        setLoading(false);
+
+        if (error.code === 1) {
+          setError(
+            "Location permission denied. Please allow location access."
+          );
+        } else if (error.code === 2) {
+          setError("Unable to detect your location.");
+        } else if (error.code === 3) {
+          setError("Location request timed out. Please try again.");
+        } else {
+          setError("Something went wrong while getting your location.");
+        }
       },
+
       {
         enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
       }
     );
   };
 
-  useEffect(() => {
-    if (!position) return;
+  const openGoogleMaps = () => {
+    if (!location) return;
 
-    const fetchAddress = async () => {
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position[0]}&lon=${position[1]}`
-        );
+    const url = `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`;
 
-        const data = await res.json();
+    window.open(url, "_blank");
+  };
 
-        const a = data.address;
-
-        const location =
-          a.neighbourhood ||
-          a.suburb ||
-          a.residential ||
-          a.hamlet ||
-          a.village ||
-          a.town ||
-          a.city ||
-          "";
-
-        setAddress(
-          `${location}, ${a.city || a.town || a.village || ""}, ${a.state || ""}`
-        );
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
-    fetchAddress();
-  }, [position]);
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center px-6 py-10">
+    <div className="min-h-screen bg-black text-white px-6 py-8">
 
+      {/* Back */}
       <button
-        onClick={() => navigate(-1)}
-        className="self-start text-lg hover:text-red-500"
+        onClick={() => window.history.back()}
+        className="text-white text-lg hover:text-blue-400 mb-8"
       >
         ← Back
       </button>
 
-      <h1 className="text-5xl font-bold text-blue-500 mt-6">
-        📍 Live Location
-      </h1>
+      {/* Heading */}
+      <div className="text-center">
 
-      <button
-        onClick={getLocation}
-        className="mt-8 bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl font-semibold"
-      >
-        Get My Location
-      </button>
+        <h1 className="text-5xl md:text-6xl font-bold text-blue-500">
+          📍 Live Location
+        </h1>
 
-      {position && (
-        <>
-          <div className="mt-8 bg-gray-900 rounded-2xl p-6 w-full max-w-3xl text-center">
+        <p className="text-gray-400 mt-4 text-lg">
+          Find and share your current location
+        </p>
 
-            <h2 className="text-2xl font-bold text-green-400">
-              📍 Last Known Location
+        {/* Get Location Button */}
+        <button
+          onClick={getLocation}
+          disabled={loading}
+          className="mt-8 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-10 py-4 rounded-2xl text-xl font-bold"
+        >
+          {loading ? "Getting Location..." : "Get My Location"}
+        </button>
+
+        {/* Error */}
+        {error && (
+          <div className="mt-8 bg-red-900/40 border border-red-500 rounded-xl p-5">
+            <p className="text-red-300">
+              ⚠️ {error}
+            </p>
+          </div>
+        )}
+
+        {/* Location Result */}
+        {location && (
+          <div className="mt-10 bg-gray-900 rounded-3xl p-7 max-w-2xl mx-auto">
+
+            <h2 className="text-3xl font-bold text-green-500">
+              📍 Your Current Location
             </h2>
 
-            <p className="mt-3 text-lg text-white">
-              {address || "Fetching address..."}
-            </p>
+            {/* Address */}
+            <div className="mt-6 bg-gray-800 rounded-2xl p-5 text-left">
 
-            <a
-              href={mapLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-6 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold"
+              <p className="text-gray-400 text-sm">
+                CURRENT ADDRESS
+              </p>
+
+              <p className="text-white text-lg mt-2 leading-relaxed">
+                {address || "Finding your address..."}
+              </p>
+
+            </div>
+
+            {/* Coordinates */}
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              <div className="bg-gray-800 rounded-xl p-4">
+                <p className="text-gray-400 text-sm">
+                  Latitude
+                </p>
+
+                <p className="text-white font-semibold mt-1">
+                  {location.latitude.toFixed(6)}
+                </p>
+              </div>
+
+              <div className="bg-gray-800 rounded-xl p-4">
+                <p className="text-gray-400 text-sm">
+                  Longitude
+                </p>
+
+                <p className="text-white font-semibold mt-1">
+                  {location.longitude.toFixed(6)}
+                </p>
+              </div>
+
+            </div>
+
+            {/* Google Maps */}
+            <button
+              onClick={openGoogleMaps}
+              className="mt-7 w-full bg-green-600 hover:bg-green-700 px-6 py-4 rounded-xl text-lg font-bold"
             >
-              🗺️ Open in Google Maps
-            </a>
+              🗺️ View on Google Maps
+            </button>
 
           </div>
+        )}
 
-          <div className="mt-6 w-full max-w-4xl h-[500px] rounded-2xl overflow-hidden">
-            <MapContainer
-              center={position}
-              zoom={16}
-              scrollWheelZoom={true}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer
-                attribution="&copy; OpenStreetMap contributors"
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-
-              <Marker position={position} icon={icon}>
-                <Popup>
-                  📍 You are here
-                </Popup>
-              </Marker>
-            </MapContainer>
-          </div>
-        </>
-      )}
+      </div>
 
     </div>
   );
