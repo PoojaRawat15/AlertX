@@ -1,17 +1,38 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  reload,
+} from "firebase/auth";
 import { auth } from "../firebase";
- 
+
 function Login() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      await reload(user);
+
+      if (!user.emailVerified) {
+        alert(
+          "📧 Please verify your email first. Check your inbox for the verification link."
+        );
+        return;
+      }
+
       navigate("/Dashboard");
     } catch (error) {
       alert(error.message);
@@ -20,12 +41,14 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-6 py-10">
-<button
-  onClick={() => navigate(-1)}
-  className="absolute top-6 left-6 text-white"
->
-     ← Back
-</button>
+
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 text-white hover:text-red-500"
+      >
+        ← Back
+      </button>
+
       <div className="w-full max-w-md bg-gray-900 rounded-3xl p-8">
 
         <h1 className="text-4xl font-bold text-center text-white">
@@ -62,18 +85,21 @@ function Login() {
           </button>
 
         </form>
-<p className="text-center text-gray-400 mt-6">
-  Don't have an account?{" "}
-  <span
-    onClick={() => navigate("/signup")}
-    className="text-blue-500 cursor-pointer hover:underline"
-  >
-    Create your account
-  </span>
-</p>
-      </div>
 
-    </div>
+        <p className="text-center text-gray-400 mt-6">
+          Don't have an account?{" "}
+          <span
+            onClick={() => navigate("/signup")}
+            className="text-blue-500 cursor-pointer hover:underline"
+          >
+            Create your account
+          </span>
+        </p>
+
+      </div>
+      
+      </div>
+   
   );
 }
 
